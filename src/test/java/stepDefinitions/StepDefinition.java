@@ -28,6 +28,10 @@ public class StepDefinition extends Utils {
     Response response;
     TestDataBuild data = new TestDataBuild();
 
+    static String place_id;
+
+
+
 
     @Given("Add Place Payload {string} {string} {string}")
     public void add_place_payload(String name, String language, String address) throws IOException {
@@ -56,10 +60,21 @@ public class StepDefinition extends Utils {
     @Then("{string} in response body is {string}")
     public void in_response_body_is(String keyValue, String expectedValue) {
         // Write code here that turns the phrase above into concrete actions
-        String resp = response.asString();
-        JsonPath js = new JsonPath(resp);
-        assertEquals(js.get(keyValue).toString(), expectedValue);
+        assertEquals(getJsonPath(response, keyValue), expectedValue);
+    }
+    @Then("verify place_Id created maps to {string} using {string}")
+    public void verify_place_id_created_maps_to_using(String expectedName, String resource) throws IOException {
+        // Write code here that turns the phrase above into concrete actions
+        place_id =  getJsonPath(response, "place_id");
+        res= given().spec(requestSpecification()).queryParam("place_id", place_id);
+        user_calls_with_post_request(resource, "GET");
+        String actualName =  getJsonPath(response, "name");
+        assertEquals(expectedName, actualName);
     }
 
-
+    @Given("DeletePlace Payload")
+    public void delete_place_payload() throws IOException {
+        // Write code here that turns the phrase above into concrete actions
+        res=given().spec(requestSpecification()).body(data.deletePlacePayload(place_id));
+    }
 }
